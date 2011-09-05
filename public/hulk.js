@@ -355,44 +355,43 @@ $(function() {
 });
 
 function display_user_data( data ){
-    var html = $('<button id="logout_button" class="logout">Logout</button><p>Playing as <span id="user">'+ data['name'] +'</span></p>');
+  $.get('templates/logout.mustache', function(template) {
     hide_login_form();
-    $('#identity').append( html );
+    $('#identity').append( Mustache.to_html(template, {name: data.name}) );      
+  });
 }
 
 function display_login_form(){
-    var html = '<h3>Login</h3><p><label for="login_email">Email:</label> <input name="login_email" id="login_email" /></p><p></label for="login_password">Password:</label> <input type="password" name="login_password" id="login_password" /></p><button id="login_button" class="login">Login</button><button id="create_user_button" class="login">New User</button>';
-    $('#login_box').html( html );
+  $.get('templates/login.mustache', function(template) {
+    $('#login_box').html( Mustache.to_html(template, {}) );
+  });
 }
 
 function hide_login_form(){
-    $('#login_box').html( '' );
+  $('#login_box').html( '' );
 }
 
 function load_widgets(){
-	var node_ko_vote_html = '<div id="node-vote"><div class="text">Think we rock?<br>Vote 4 us!</div><iframe class="vote-button" src="http://nodeknockout.com/iframe/umber-hulk" frameborder="0" scrolling="no" allowtransparency="true" width="115" height="25"></iframe></div>';
-	// Vote button blocks site from loading.  Prepend after load.
-	setTimeout( function(){ $('#identity').prepend( node_ko_vote_html ) }, 20 );
-    setTimeout( function(){ $.get('/leaderboard', function( response ){
+ var node_ko_vote_html = '';
+ 
+ $.get('templates/nodeko.mustache', function(template) {
+   setTimeout( function(){ $('#identity').prepend( template ) }, 20 );
+      setTimeout( function(){ $.get('/leaderboard', function( response ){
         var parsed_data = JSON.parse( response );
         var string_array = [];
         jQuery.each( parsed_data, function( key, value ){
-            string_array.push('<li value="' + ( key + 1 )  +'"><span class="player you">' + value['name']  +'</span> <span class="score">' + value['score'] +'</span></li>');
+          string_array.push('<li value="' + ( key + 1 )  +'"><span class="player you">' + value['name']  +'</span> <span class="score">' + value['score'] +'</span></li>');
         });
 
         var html = $( string_array.join(' ') );
         $('#leaderboard').append( html );
-    }, 25 );
+      }, 25 );
 
-    setTimeout( function(){ $.get('/myself', function( response ){
-            response ? display_user_data( JSON.parse( response ) ) : display_login_form();
+      setTimeout( function() {
+        $.get('/myself', function( response ) {
+          response ? display_user_data( JSON.parse( response ) ) : display_login_form();
         });
-    }, 30);
-});
-
-}
-
-function update_user_position(){
-
-
+      }, 30);
+    });
+ });
 }
